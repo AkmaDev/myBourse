@@ -127,6 +127,7 @@ function createTypeSelect(): HTMLSelectElement {
   return select;
 }
 
+
 export function showLoader(): void {
   const el = document.getElementById("loader");
   if (el) el.style.display = "block";
