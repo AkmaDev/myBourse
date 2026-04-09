@@ -93,3 +93,30 @@ export function exportAsImage(): void {
         link.click();
     }
 }
+
+export function exportToCSV(): void {
+  if (lastData1.length === 0 && lastData2.length === 0) {
+    alert("Aucune donnée à exporter !");
+    return;
+  }
+
+  let csvContent = "Date;Symbole;Prix\n";
+
+  lastData1.forEach(item => {
+    csvContent += `${item.date};${item.symbol};${item.price}\n`;
+  });
+
+  lastData2.forEach(item => {
+    csvContent += `${item.date};${item.symbol};${item.price}\n`;
+  });
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `export_bourse_${new Date().getTime()}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
