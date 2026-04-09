@@ -82,3 +82,14 @@ export function changeType(type: "line" | "bar" | "radar"): void {
     drawChart(lastData1, lastData2);
   }
 }
+
+export function exportAsImage(): void {
+    const canvas = document.getElementById("myCanvas") as HTMLCanvasElement;
+    if (canvas) {
+        const url = canvas.toDataURL("image/png");
+        const link = document.createElement('a');
+        link.download = 'mon-graphique.png';
+        link.href = url;
+        link.click();
+    }
+}
