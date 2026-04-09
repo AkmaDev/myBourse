@@ -1,7 +1,7 @@
 import { initUI, getFormValues, showLoader, hideLoader, showError, hideError } from "./ui/interface";
 import { fetchStock } from "./api/fetch";
 
-import { updateChart,changeType } from "./charts/chart";
+import { updateChart, changeType, exportAsImage } from "./charts/chart";
 
 async function loadData(): Promise<void> {
   const { symbol1, symbol2, period } = getFormValues();
@@ -37,6 +37,7 @@ async function loadData(): Promise<void> {
 document.addEventListener("DOMContentLoaded", () => {
   initUI();
   document.getElementById("btn-show")?.addEventListener("click", loadData);
+  document.getElementById("btn-export")?.addEventListener("click", exportAsImage);
   const selectType = document.getElementById("select-chart-type") as HTMLSelectElement;
   
   selectType?.addEventListener("change", (event) => {
