@@ -1,13 +1,14 @@
-import Chart from 'chart.js/auto';
+import {Chart, ChartType} from 'chart.js/auto';
 import type { StockData } from '../models/types';
 
 let myChart: Chart | null = null;
 
-let currentChartType: any = 'line';
+let currentChartType: ChartType = 'line';
 let lastData1: StockData[] = [];
 let lastData2: StockData[] = [];
 
 export function drawChart(data1: StockData[], data2: StockData[]): void {
+
   lastData1 = data1;
   lastData2 = data2;
 
@@ -56,6 +57,20 @@ export function drawChart(data1: StockData[], data2: StockData[]): void {
 }
 
 export function updateChart(data1: StockData[], data2: StockData[]): void {
+  if (!Array.isArray(data1) || !Array.isArray(data2)) {
+    console.error("Format de données invalide reçu par le graphique.");
+    return;
+  }
+
+  if (data1.length === 0 && data2.length === 0) {
+    console.warn("Aucune donnée reçue pour les symboles sélectionnés.");
+    if (myChart) {
+      myChart.destroy();
+      myChart = null;
+    }
+    return;
+  }
+
   lastData1 = data1;
   lastData2 = data2;
 
