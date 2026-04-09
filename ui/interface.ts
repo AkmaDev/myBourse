@@ -94,6 +94,19 @@ function createErrorBox(): void {
   document.getElementById("app")?.appendChild(box);
 }
 
+function createExportButton(): HTMLButtonElement {
+  const btn = document.createElement("button");
+  btn.id = "btn-export";
+  btn.textContent = "Télécharger le graphique (PNG)";
+  btn.type = "button";
+  btn.style.marginLeft = "10px";
+  btn.style.backgroundColor = "#28a745";
+  btn.style.color = "white";
+
+  document.getElementById("controls")?.appendChild(btn);
+  return btn;
+}
+
 function createTypeSelect(): HTMLSelectElement {
   const label = document.createElement("label");
   label.htmlFor = "select-chart-type";
@@ -181,6 +194,7 @@ export function initUI(): void {
 
   createPeriodSelect();
   createButton();
+  createExportButton();
   createTypeSelect();
   createLoader();
   createErrorBox();
