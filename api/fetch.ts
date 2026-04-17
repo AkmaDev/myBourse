@@ -1,8 +1,13 @@
-// fetch.ts — stub, P1 remplace le corps de fetchStock() par le vrai appel API
+// fetch.ts — Récupération des données de l'API REST
 
 import type { StockData, Period, StockAPI } from "../models/types";
-import { MOCK_DATA } from "./mockData";
 
+const API_URL = "https://keligmartin.github.io/api/stocks.json";
+let cachedStocks: StockAPI[] | null = null;
+
+/**
+ * Convertit un objet StockAPI en tableau de StockData
+ */
 function convertData(stock: StockAPI): StockData[] {
   return stock.history.map((point) => ({
     date: point.date,
@@ -11,6 +16,8 @@ function convertData(stock: StockAPI): StockData[] {
     symbol: stock.symbol,
   }));
 }
+
+// Filtre les données par période (1W, 1M, 1Y)
 
 function filterByPeriod(data: StockData[], period: Period): StockData[] {
   const now = new Date("2026-03-14");
@@ -23,11 +30,107 @@ function filterByPeriod(data: StockData[], period: Period): StockData[] {
   });
 }
 
+/* Récupère tous les stocks depuis l'API
+   Utilise un cache pour éviter les appels répétés
+ */
+async function getAllStocks(): Promise<StockAPI[]> {
+  if (cachedStocks) {
+    return cachedStocks;
+  }
+
+  try {
+    const response = await fetch(API_URL);
+    
+    if (!response.ok) {
+      throw new Error(`Erreur API (${response.status}): ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Validation basique
+    if (!Array.isArray(data)) {
+      throw new Error("Format API invalide: attendu un tableau");
+    }
+
+    // Validation des données
+    data.forEach((stock, index) => {
+      if (!stock.symbol || !stock.history || !Array.isArray(stock.history)) {
+        throw new Error(`Données invalides pour l'action ${index}: propriétés manquantes`);
+      }
+    });
+
+    cachedStocks = data;
+    return data;
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error("Erreur réseau: impossible de contacter l'API");
+    }
+    throw error;
+  }
+}
+
+/**
+ * Récupère les données d'une action pour une période donnée
+ * @param symbol - Symbole de l'action (ex: "AAPL")
+ * @param period - Période: "1W", "1M", "1Y"
+ * @throws Error si l'action n'existe pas ou erreur API/réseau
+ */
 export async function fetchStock(symbol: string, period: Period): Promise<StockData[]> {
-  await new Promise((resolve) => setTimeout(resolve, 250));
+  try {
+    const stocks = await getAllStocks();
+    const stock = stocks.find((s) => s.symbol === symbol);
 
-  const stock = MOCK_DATA.find((s) => s.symbol === symbol);
-  if (!stock) throw new Error(`Unknown stock: ${symbol}`);
+    if (!stock) {
+      const availableSymbols = stocks.map((s) => s.symbol).join(", ");
+      throw new Error(`Action '${symbol}' non trouvée. Disponibles: ${availableSymbols}`);
+    }
 
-  return filterByPeriod(convertData(stock), period);
+    return filterByPeriod(convertData(stock), period);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Erreur inconnue lors de la récupération des données");
+  }
+}
+
+// Retourne la liste de tous les symboles d'actions disponibles Utile pour remplir les sélecteurs UI
+
+export async function getAvailableSymbols(): Promise<string[]> {
+  try {
+    const stocks = await getAllStocks();
+    return stocks.map((s) => s.symbol);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Erreur lors de la récupération de la liste des actions");
+  }
+}
+
+//* Retourne les infos complètes d'une action (nom, secteur, prix courant)  Utile pour afficher des détails dans l'UI
+
+export async function getStockInfo(symbol: string): Promise<Omit<StockAPI, "history">> {
+  try {
+    const stocks = await getAllStocks();
+    const stock = stocks.find((s) => s.symbol === symbol);
+
+    if (!stock) {
+      throw new Error(`Action '${symbol}' non trouvée`);
+    }
+
+    const { history, ...info } = stock;
+    return info;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Erreur lors de la récupération des infos");
+  }
+}
+
+// Réinitialise le cache (utile pour les tests ou forcer un refresh)
+
+export function clearCache(): void {
+  cachedStocks = null;
 }
