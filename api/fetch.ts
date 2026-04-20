@@ -5,9 +5,7 @@ import type { StockData, Period, StockAPI } from "../models/types";
 const API_URL = "https://keligmartin.github.io/api/stocks.json";
 let cachedStocks: StockAPI[] | null = null;
 
-/**
- * Convertit un objet StockAPI en tableau de StockData
- */
+
 function convertData(stock: StockAPI): StockData[] {
   return stock.history.map((point) => ({
     date: point.date,
@@ -17,7 +15,6 @@ function convertData(stock: StockAPI): StockData[] {
   }));
 }
 
-// Filtre les données par période (1W, 1M, 1Y)
 
 function filterByPeriod(data: StockData[], period: Period): StockData[] {
   const now = new Date("2026-03-14");
@@ -30,9 +27,7 @@ function filterByPeriod(data: StockData[], period: Period): StockData[] {
   });
 }
 
-/* Récupère tous les stocks depuis l'API
-   Utilise un cache pour éviter les appels répétés
- */
+
 async function getAllStocks(): Promise<StockAPI[]> {
   if (cachedStocks) {
     return cachedStocks;
@@ -94,7 +89,6 @@ export async function fetchStock(symbol: string, period: Period): Promise<StockD
   }
 }
 
-// Retourne la liste de tous les symboles d'actions disponibles Utile pour remplir les sélecteurs UI
 
 export async function getAvailableSymbols(): Promise<string[]> {
   try {
@@ -108,7 +102,6 @@ export async function getAvailableSymbols(): Promise<string[]> {
   }
 }
 
-//* Retourne les infos complètes d'une action (nom, secteur, prix courant)  Utile pour afficher des détails dans l'UI
 
 export async function getStockInfo(symbol: string): Promise<Omit<StockAPI, "history">> {
   try {
